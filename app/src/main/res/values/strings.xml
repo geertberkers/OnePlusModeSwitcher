@@ -1,4 +1,16 @@
 <resources>
     <string name="app_name">ModeSwitcher</string>
     <string name="action_settings">Settings</string>
+
+    <!--Popup closing application-->
+    <string name="minimize">Minimize</string>
+    <string name="close">Close</string>
+    <string name="warning">Warning</string>
+    <string name="close_message">If you close the app, it won\'t work anymore.\nClose or minimize app?</string>
+
+    <!--Popup hiding application-->
+    <string name="important">Important!</string>
+    <string name="reopen_app">To launch the app, dial phone number 9999.</string>
+    <string name="hide_condition">Allow permissions for hiding application.</string>
+
 </resources>

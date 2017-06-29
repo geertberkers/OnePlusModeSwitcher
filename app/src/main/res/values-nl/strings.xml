@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--Popup closing application-->
+    <string name="minimize">Minimaliseren</string>
+    <string name="close">Afsluiten</string>
+    <string name="warning">Waarschuwing</string>
+    <string name="close_message">Als u de app sluit werkt hij niet meer.\nWilt u de app afsluiten of minimaliseren?</string>
+
+    <!--Popup hiding application-->
+    <string name="important">Belangrijk!</string>
+    <string name="reopen_app">Om de app opnieuw te openen, bel 9999.</string>
+    <string name="hide_condition">Sta permissies toe om app te verbergen.</string>
+</resources>
