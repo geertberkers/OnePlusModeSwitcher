@@ -10,7 +10,14 @@
 
     <!--Popup hiding application-->
     <string name="important">Important!</string>
-    <string name="reopen_app">To launch the app, dial phone number 9999.</string>
+    <string name="reopen_app">To launch the app, dial phone number *9999#</string>
     <string name="hide_condition">Allow permissions for hiding application.</string>
+
+    <!--Service-->
+    <string name="alertslider_service">AlertSliderService</string>
+    <string name="service_running">ModeSwitcher is running!</string>
+    <string name="service_stopped">ModeSwitcher stopped!</string>
+    <string name="notification_hidden">Notification hidden!</string>
+    <string name="notification_closed">Stopped ModeSwitcher</string>
 
 </resources>
