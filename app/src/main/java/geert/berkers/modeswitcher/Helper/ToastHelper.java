@@ -1,4 +1,4 @@
-package geert.berkers.modeswitcher.Helper;
+package geert.berkers.modeswitcher.helper;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -13,7 +13,7 @@ import android.widget.Toast;
 import geert.berkers.modeswitcher.R;
 
 /**
- * Created by Zorgkluis (geert).
+ * Created by Geert Berkers.
  */
 public class ToastHelper {
 

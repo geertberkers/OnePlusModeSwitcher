@@ -1,28 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="geert.berkers.modeswitcher.Activity.MainActivity"
-    tools:showIn="@layout/activity_main">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                tools:context="geert.berkers.modeswitcher.activity.MainActivity"
+                tools:showIn="@layout/activity_main">
+
+    <ImageView
+        android:id="@+id/appIcon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:scaleType="fitCenter"
+        android:contentDescription="@string/oneplus_logo"
+        android:src="@drawable/oneplus_logo"/>
 
     <LinearLayout
+        android:id="@+id/buttonLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:layout_below="@id/appIcon"
+        android:weightSum="1">
 
         <Button
             android:id="@+id/btnStartService"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Start service" />
+            android:layout_weight="0.5"
+            android:text="@string/start_service"
+            android:theme="@style/ButtonStyle"/>
 
         <Button
             android:id="@+id/btnStopService"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Stop service" />
+            android:layout_weight="0.5"
+            android:text="@string/stop_service"
+            android:theme="@style/ButtonStyle"/>
     </LinearLayout>
 
-</android.support.constraint.ConstraintLayout>
+    <FrameLayout
+        android:id="@+id/settingsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/buttonLayout"/>
+
+</RelativeLayout>

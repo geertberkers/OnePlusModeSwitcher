@@ -1,27 +1,32 @@
-package geert.berkers.modeswitcher.Activity;
+package geert.berkers.modeswitcher.activity;
 
 import android.app.ActivityManager;
-import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.support.design.widget.FloatingActionButton;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
 import geert.berkers.modeswitcher.R;
-import geert.berkers.modeswitcher.Service.AlertSliderService;
+import geert.berkers.modeswitcher.service.AlertSliderService;
+import geert.berkers.modeswitcher.fragment.MyPreferenceFragment;
 
-public class MainActivity extends AppCompatActivity {
+/**
+ * Created by Geert Berkers.
+ */
+public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private boolean mIsBound;
-
-    private AlertSliderService mBoundService;
+    private Button btnStopService;
+    private Button btnStartService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,99 +35,144 @@ public class MainActivity extends AppCompatActivity {
 
         initToolbar();
         initControls();
-        initFloatingActionButton();
-        initService();
+        initSettingsFragment();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean startOnOpenApp = preferences.getBoolean("startOnOpenApp", true);
+
+        if(startOnOpenApp){
+            initService();
+        }
+
+       handleServiceButtons();
+
+    }
+
+    /**
+     * Handle button background color
+     */
+    private void handleServiceButtons() {
+        if(isAlertSliderServiceRunning()){
+            btnStopService.setEnabled(true);
+            btnStartService.setEnabled(false);
+            btnStopService.getBackground().setColorFilter(0xFF3F51B5, PorterDuff.Mode.MULTIPLY);
+            btnStartService.getBackground().setColorFilter(0x803F51B5, PorterDuff.Mode.MULTIPLY);
+        } else{
+            btnStopService.setEnabled(false);
+            btnStartService.setEnabled(true);
+            btnStopService.getBackground().setColorFilter(0x803F51B5, PorterDuff.Mode.MULTIPLY);
+            btnStartService.getBackground().setColorFilter(0xFF3F51B5, PorterDuff.Mode.MULTIPLY);
+        }
+    }
+
+    /**
+     * Set SettingsFragment
+     */
+    private void initSettingsFragment() {
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.settingsFragment, new MyPreferenceFragment())
+                .commit();
+    }
+
+    /**
+     * Initialize Toolbar
+     */
     private void initToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setIcon(R.mipmap.ic_launcher);
+        }
+
     }
 
+    /**
+     * Initialize Controls
+     */
     private void initControls() {
-        Button btnStartService = (Button) findViewById(R.id.btnStartService);
+        btnStartService = (Button) findViewById(R.id.btnStartService);
         btnStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startService(getServiceIntent());
+                handleServiceButtons();
             }
         });
 
-        Button btnStopService = (Button) findViewById(R.id.btnStopService);
+        btnStopService = (Button) findViewById(R.id.btnStopService);
         btnStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 stopService(getServiceIntent());
+                handleServiceButtons();
             }
         });
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
-    private void initFloatingActionButton() {
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
-        });
-    }
-
+    /**
+     * Init AlertSliderService
+     */
     private void initService() {
         startService(getServiceIntent());
     }
 
+    /**
+     * Get the current ServiceIntent
+     * @return Intent of Service
+     */
     private Intent getServiceIntent(){
         return new Intent(this, AlertSliderService.class);
     }
 
-
     @Override
-    protected void onStart() {
-        super.onStart();
-        Log.i("ModeSwitcher", "onStart()");
-        doBindService();
-    }
-
-    void doBindService() {
-        Log.i("ModeSwitcher", "doBindService()");
-        bindService(new Intent(MainActivity.this, AlertSliderService.class), mConnection, Context.BIND_AUTO_CREATE);
-        mIsBound = true;
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        Log.i("ModeSwitcher", "onStop()");
-        doUnbindService();
-    }
-
-    void doUnbindService() {
-        if (mIsBound) {
-            Log.i("ModeSwitcher", "doUnbindService()");
-            unbindService(mConnection);
-            mIsBound = false;
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_about:
+                showAboutPopUp();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.i("ModeSwitcher", "onServiceConnected()");
-            mBoundService = ((AlertSliderService.LocalBinder)service).getService();
-
-            if (isAlertSliderServiceRunning()) {
-                mBoundService.showNotification();
-            }
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            Log.i("ModeSwitcher", "onServiceDisconnected()");
-            mBoundService = null;
-        }
-    };
 
     /**
-     * Check if the AlertSliderService is running
-     * @return true if running, false if not
+     * Show about developer popup
+     */
+    private void showAboutPopUp() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(R.string.action_about);
+        alertDialogBuilder.setIcon(R.drawable.ic_info_black);
+        alertDialogBuilder.setMessage(R.string.about_developer);
+        alertDialogBuilder.setNegativeButton(android.R.string.ok,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                });
+
+        alertDialogBuilder.show();
+    }
+
+    /**
+     * Check if Service is running currently
+     * @return true if running else false
      */
     private boolean isAlertSliderServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -132,5 +182,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return false;
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(key.equals("showNotification")){
+            initService();
+        }
     }
 }

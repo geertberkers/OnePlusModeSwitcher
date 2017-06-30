@@ -1,4 +1,4 @@
-package geert.berkers.modeswitcher.BroadcastReceivers;
+package geert.berkers.modeswitcher.broadcastReceivers;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -7,11 +7,11 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
-import geert.berkers.modeswitcher.Helper.ToastHelper;
+import geert.berkers.modeswitcher.helper.ToastHelper;
 import geert.berkers.modeswitcher.R;
 
 /**
- * Created by Zorgkluis (geert).
+ * Created by Geert Berkers.
  */
 public class HideReceiver extends BroadcastReceiver {
 

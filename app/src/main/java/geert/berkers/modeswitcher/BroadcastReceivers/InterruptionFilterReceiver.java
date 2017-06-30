@@ -1,4 +1,4 @@
-package geert.berkers.modeswitcher.BroadcastReceivers;
+package geert.berkers.modeswitcher.broadcastReceivers;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.util.Log;
+
+import geert.berkers.modeswitcher.service.AlertSliderService;
 
 /**
  * Created by Geert.
@@ -30,36 +32,39 @@ public class InterruptionFilterReceiver extends BroadcastReceiver {
                 case NotificationManager.INTERRUPTION_FILTER_UNKNOWN:   handleUnknownState();  break;
                 default: onInterruptionFilterChanged();                                        break;
             }
+
+            Intent i = new Intent(context, AlertSliderService.class);
+            context.startService(i);
         }
     }
 
-    public void onInterruptionFilterChanged() {
+    private void onInterruptionFilterChanged() {
         Log.i("ModeSwitcher", "onInterruptionFilterChanged()");
     }
 
-    public void handleAlarmState() {
+    private void handleAlarmState() {
         Log.i("ModeSwitcher", "handleAlarmState()");
     }
 
-    public void handleAllState() {
+    private void handleAllState() {
         Log.i("ModeSwitcher", "handleAllState()");
         setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
     }
 
-    public void handleNoneState() {
+    private void handleNoneState() {
         Log.i("ModeSwitcher","handleNoneState()");
         setRingerMode(AudioManager.RINGER_MODE_SILENT);
     }
 
-    public void handlePriorityState() {
+    private void handlePriorityState() {
         Log.i("ModeSwitcher","handlePriorityState()");
     }
 
-    public void handleUnknownState() {
+    private void handleUnknownState() {
         Log.i("ModeSwitcher", "handleUnknownState()");
     }
 
-    public void setRingerMode(int ringerMode) {
+    private void setRingerMode(int ringerMode) {
         AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         am.setRingerMode(ringerMode);
     }

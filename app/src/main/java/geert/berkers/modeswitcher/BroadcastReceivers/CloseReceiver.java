@@ -1,4 +1,4 @@
-package geert.berkers.modeswitcher.BroadcastReceivers;
+package geert.berkers.modeswitcher.broadcastReceivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,12 +6,12 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
-import geert.berkers.modeswitcher.Helper.ToastHelper;
+import geert.berkers.modeswitcher.helper.ToastHelper;
 import geert.berkers.modeswitcher.R;
-import geert.berkers.modeswitcher.Service.AlertSliderService;
+import geert.berkers.modeswitcher.service.AlertSliderService;
 
 /**
- * Created by Zorgkluis (geert).
+ * Created by Geert Berkers.
  */
 public class CloseReceiver extends BroadcastReceiver {
 
@@ -22,5 +22,4 @@ public class CloseReceiver extends BroadcastReceiver {
         context.stopService(service);
         ToastHelper.makeText(context, context.getString(R.string.notification_closed), Toast.LENGTH_SHORT).show();
     }
-
 }

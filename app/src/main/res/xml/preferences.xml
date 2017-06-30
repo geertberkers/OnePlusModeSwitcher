@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="startOnBoot"
+        android:title="@string/start_boot"/>
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="startOnOpenApp"
+        android:title="@string/start_app"/>
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="showNotification"
+        android:title="@string/show_notification"/>
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="showStoppedNotification"
+        android:title="@string/show_stopped_notification"/>
+
+</PreferenceScreen>
