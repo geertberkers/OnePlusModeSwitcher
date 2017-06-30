@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
@@ -27,13 +28,26 @@ public class AlertSliderService extends Service {
 
     private InterruptionFilterReceiver interruptionFilterReceiver;
 
+    private final IBinder mBinder = new LocalBinder();
+
     private final int NOTIFICATION = R.string.alertslider_service;
+
+    /**
+     * Class for clients to access.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with
+     * IPC.
+     */
+    public class LocalBinder extends Binder {
+        public AlertSliderService getService() {
+            return AlertSliderService.this;
+        }
+    }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         Log.i("AlertSliderService", "Service Bound");
-        return null;
+        return mBinder;
     }
 
     @Override
@@ -104,7 +118,9 @@ public class AlertSliderService extends Service {
     /**
      * Show a notification while this service is running.
      */
-    private void showNotification() {
+    public void showNotification() {
+        Log.i("AlertSliderService", "showNotification()");
+
         // In this sample, we'll use the same text for the ticker and the expanded notification
         CharSequence text = getText(NOTIFICATION);
 

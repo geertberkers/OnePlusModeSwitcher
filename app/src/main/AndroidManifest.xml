@@ -22,23 +22,17 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".Service.AlertSliderService" />
+
         <receiver android:name=".BroadcastReceivers.HideReceiver" />
 
         <receiver android:name=".BroadcastReceivers.CloseReceiver" />
-
-        <receiver android:name=".BroadcastReceivers.LaunchReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-            </intent-filter>
-        </receiver>
 
         <receiver android:name=".BroadcastReceivers.BootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
-        <service android:name=".Service.AlertSliderService" />
 
     </application>
 </manifest>

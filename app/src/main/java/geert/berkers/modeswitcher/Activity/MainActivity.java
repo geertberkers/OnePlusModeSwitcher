@@ -1,9 +1,12 @@
 package geert.berkers.modeswitcher.Activity;
 
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,13 +19,9 @@ import geert.berkers.modeswitcher.Service.AlertSliderService;
 
 public class MainActivity extends AppCompatActivity {
 
-//    public static int CALL_PERMISSION = 1;
-//
-//    private static final ComponentName LAUNCHER_COMPONENT_NAME =
-//            new ComponentName(
-//                    "geert.berkers.modeswitcher",
-//                    "geert.berkers.modeswitcher.Activity.MainActivity");
+    private boolean mIsBound;
 
+    private AlertSliderService mBoundService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +31,8 @@ public class MainActivity extends AppCompatActivity {
         initToolbar();
         initControls();
         initFloatingActionButton();
-//        initInterruptionFilterReceiver();
-
         initService();
-
     }
-
 
     private void initToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -62,22 +57,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void initService() {
-        if(isAlertSliderServiceRunning()){
-            showServiceNotification();
-        } else{
-            startService(getServiceIntent());
-        }
-    }
-
-    private void showServiceNotification() {
-        
-    }
-
-    private Intent getServiceIntent(){
-        return new Intent(this, AlertSliderService.class);
-    }
-
     private void initFloatingActionButton() {
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -88,36 +67,58 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //    Standard methods
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//        Log.i("ModeSwitcher", "onStart()");
-//    }
-//
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        Log.i("ModeSwitcher", "onResume()");
-//    }
-//
-//    @Override
-//    protected void onRestart() {
-//        super.onRestart();
-//        Log.i("ModeSwitcher", "onRestart()");
-//    }
-//
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//        Log.i("ModeSwitcher", "onStop()");
-//    }
-//
-//    @Override
-//    protected void onDestroy() {
-//        super.onDestroy();
-//        Log.i("ModeSwitcher", "onDestroy()");
-//    }
+    private void initService() {
+        startService(getServiceIntent());
+    }
+
+    private Intent getServiceIntent(){
+        return new Intent(this, AlertSliderService.class);
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.i("ModeSwitcher", "onStart()");
+        doBindService();
+    }
+
+    void doBindService() {
+        Log.i("ModeSwitcher", "doBindService()");
+        bindService(new Intent(MainActivity.this, AlertSliderService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i("ModeSwitcher", "onStop()");
+        doUnbindService();
+    }
+
+    void doUnbindService() {
+        if (mIsBound) {
+            Log.i("ModeSwitcher", "doUnbindService()");
+            unbindService(mConnection);
+            mIsBound = false;
+        }
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            Log.i("ModeSwitcher", "onServiceConnected()");
+            mBoundService = ((AlertSliderService.LocalBinder)service).getService();
+
+            if (isAlertSliderServiceRunning()) {
+                mBoundService.showNotification();
+            }
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            Log.i("ModeSwitcher", "onServiceDisconnected()");
+            mBoundService = null;
+        }
+    };
 
     /**
      * Check if the AlertSliderService is running
