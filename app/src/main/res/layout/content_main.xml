@@ -9,12 +9,14 @@
                 tools:showIn="@layout/activity_main">
 
     <ImageView
+        android:padding="10dp"
         android:id="@+id/appIcon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
         android:contentDescription="@string/oneplus_logo"
+        android:scaleType="centerCrop"
         android:src="@drawable/oneplus_logo"/>
 
     <LinearLayout

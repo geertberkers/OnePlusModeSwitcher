@@ -14,7 +14,7 @@
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="showNotification"
-        android:title="@string/show_notification"/>
+        android:title="@string/always_show_notification"/>
 
     <CheckBoxPreference
         android:defaultValue="true"

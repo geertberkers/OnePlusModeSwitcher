@@ -18,8 +18,27 @@ public class CloseReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i("ModeSwitcher", "CloseReceiver - onReceive()");
+
+        stopService(context);
+        showStoppedNotification(context);
+
+//        if(ContextManager.isAppProcessRunning(context)){
+//            Log.i("CloseReceiver", "Process is Running!!");
+//            Intent activity = new Intent(context, MainActivity.class);
+//            activity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            activity.putExtra("receiverTask", "close");
+//            context.startActivity(activity);
+//        }
+    }
+
+
+    private void stopService(Context context) {
         Intent service = new Intent(context, AlertSliderService.class);
         context.stopService(service);
+    }
+
+    private void showStoppedNotification(Context context) {
         ToastHelper.makeText(context, context.getString(R.string.notification_closed), Toast.LENGTH_SHORT).show();
     }
+
 }

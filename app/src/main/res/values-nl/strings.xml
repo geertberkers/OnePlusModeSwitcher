@@ -15,7 +15,7 @@
     <string name="alert_slider_service">AlertSliderService</string>
     <string name="service_running">ModeSwitcher staat aan!</string>
     <string name="service_stopped">ModeSwitcher is gestopt!</string>
-    <string name="notification_hidden">Melding verbergthidden!</string>
+    <string name="notification_hidden">Melding verborgen!</string>
     <string name="notification_closed">ModeSwitcher gestopt</string>
 
     <!--Interrupt modes-->
@@ -29,6 +29,6 @@
     <!--Preferences-->
     <string name="start_boot">Start bij opstarten</string>
     <string name="start_app">Start bij openen App</string>
-    <string name="show_notification">Geef meldingen weer</string>
-    <string name="show_stopped_notification">Geef melding wanneer gestopt</string>
+    <string name="always_show_notification">Toon melding altijd</string>
+    <string name="show_stopped_notification">Toon melding wanneer gestopt</string>
 </resources>

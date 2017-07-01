@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -177,7 +178,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private boolean isAlertSliderServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+
             if (AlertSliderService.class.getName().equals(service.service.getClassName())) {
+                Log.d("MainActivity", "ServiceName" + service.service.getClassName());
                 return true;
             }
         }

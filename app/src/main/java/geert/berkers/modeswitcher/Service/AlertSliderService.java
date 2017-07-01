@@ -111,21 +111,22 @@ public class AlertSliderService extends Service {
      * Show a notification when this service stopped.
      */
     private void showStoppedNotification() {
-        // The PendingIntent to launch our activity if the user selects this notification
+        // Launch intent
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         // Hide notification action
         Intent restartServiceIntent = new Intent(this, BootReceiver.class);
+        restartServiceIntent.setAction(BootReceiver.RESTART_APP);
         PendingIntent restartPendingIntent = PendingIntent.getBroadcast(this, 0, restartServiceIntent, 0);
-        NotificationCompat.Action restartAction = new NotificationCompat.Action.Builder(R.mipmap.ic_launcher, "Restart", restartPendingIntent).build();
+        NotificationCompat.Action restartAction = new NotificationCompat.Action.Builder(R.drawable.ic_restart, "Restart", restartPendingIntent).build();
 
-        // Set the info for the views that show in the notification panel.
+        // Build notification
         Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)                 // The status icon
-                .setContentTitle(getText(R.string.service_stopped))           // The label of the entry
-                .setContentText(getString(R.string.click_open_app)) // The contents of the entry
-                .setContentIntent(contentIntent)                    // The intent to send when the entry is clicked
-                .addAction(restartAction)                           // Add action to restart service
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getText(R.string.service_stopped))
+                .setContentText(getString(R.string.click_open_app))
+                .setContentIntent(contentIntent)
+                .addAction(restartAction)
                 .build();
 
         // Send the notification.
@@ -137,30 +138,30 @@ public class AlertSliderService extends Service {
      */
     private void showNotification() {
         Log.i("AlertSliderService", "showNotification()");
-        CharSequence text = getString(R.string.current_mode) + getRingerMode();
+        CharSequence text = getString(R.string.current_mode) + " " + getRingerMode();
 
-        // The PendingIntent to launch our activity if the user selects this notification
+        // Launch intent
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         // Hide notification action
         Intent hideIntent = new Intent(this, HideReceiver.class);
         hideIntent.putExtra("notification", NOTIFICATION);
         PendingIntent hidePendingIntent = PendingIntent.getBroadcast(this, 0, hideIntent, 0);
-        NotificationCompat.Action hideAction = new NotificationCompat.Action.Builder(R.mipmap.ic_launcher, getString(R.string.hide), hidePendingIntent).build();
+        NotificationCompat.Action hideAction = new NotificationCompat.Action.Builder(R.drawable.ic_hide, getString(R.string.hide), hidePendingIntent).build();
 
         // Close application and service
         Intent closeIntent = new Intent(this, CloseReceiver.class);
         PendingIntent closePendingIntent = PendingIntent.getBroadcast(this, 0, closeIntent, 0);
-        NotificationCompat.Action closeAction = new NotificationCompat.Action.Builder(R.mipmap.ic_launcher, getString(R.string.close), closePendingIntent).build();
+        NotificationCompat.Action closeAction = new NotificationCompat.Action.Builder(R.drawable.ic_stop, getString(R.string.close), closePendingIntent).build();
 
-        // Set the info for the views that show in the notification panel.
+        // Build notification
         Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)                 // The status icon
-                .setContentTitle(getText(R.string.service_running))        // The label of the entry
-                .setContentText(text)                               // The contents of the entry
-                .setContentIntent(contentIntent)                    // The intent to send when the entry is clicked
-                .addAction(hideAction)                              // Add action to hide notification
-                .addAction(closeAction)                             // Add action to close app
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getText(R.string.service_running))
+                .setContentText(text)
+                .setContentIntent(contentIntent)
+                .addAction(hideAction)
+                .addAction(closeAction)
                 .setOngoing(true)
                 .build();
 
