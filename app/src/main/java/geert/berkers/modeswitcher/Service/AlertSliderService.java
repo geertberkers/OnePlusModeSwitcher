@@ -112,7 +112,7 @@ public class AlertSliderService extends Service {
      */
     private void showStoppedNotification() {
         // Launch intent
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+        PendingIntent contentIntent = createContentIntent();
 
         // Hide notification action
         Intent restartServiceIntent = new Intent(this, BootReceiver.class);
@@ -139,20 +139,12 @@ public class AlertSliderService extends Service {
     private void showNotification() {
         Log.i("AlertSliderService", "showNotification()");
         CharSequence text = getString(R.string.current_mode) + " " + getRingerMode();
+        
+        PendingIntent contentIntent = createContentIntent();
+        NotificationCompat.Action hideAction = createHideAction();
+        NotificationCompat.Action closeAction = createCloseAction();
 
-        // Launch intent
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
-
-        // Hide notification action
-        Intent hideIntent = new Intent(this, HideReceiver.class);
-        hideIntent.putExtra("notification", NOTIFICATION);
-        PendingIntent hidePendingIntent = PendingIntent.getBroadcast(this, 0, hideIntent, 0);
-        NotificationCompat.Action hideAction = new NotificationCompat.Action.Builder(R.drawable.ic_hide, getString(R.string.hide), hidePendingIntent).build();
-
-        // Close application and service
-        Intent closeIntent = new Intent(this, CloseReceiver.class);
-        PendingIntent closePendingIntent = PendingIntent.getBroadcast(this, 0, closeIntent, 0);
-        NotificationCompat.Action closeAction = new NotificationCompat.Action.Builder(R.drawable.ic_stop, getString(R.string.close), closePendingIntent).build();
+        setHiddenPreference();
 
         // Build notification
         Notification notification = new NotificationCompat.Builder(this)
@@ -167,6 +159,28 @@ public class AlertSliderService extends Service {
 
         // Send the notification.
         mNM.notify(NOTIFICATION, notification);
+    }
+
+    private PendingIntent createContentIntent() {
+        return PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+    }
+
+    private NotificationCompat.Action createCloseAction() {
+        Intent closeIntent = new Intent(this, CloseReceiver.class);
+        PendingIntent closePendingIntent = PendingIntent.getBroadcast(this, 0, closeIntent, 0);
+        return new NotificationCompat.Action.Builder(R.drawable.ic_stop, getString(R.string.close), closePendingIntent).build();
+    }
+
+    private NotificationCompat.Action createHideAction() {
+        Intent hideIntent = new Intent(this, HideReceiver.class);
+        hideIntent.putExtra("notification", NOTIFICATION);
+        PendingIntent hidePendingIntent = PendingIntent.getBroadcast(this, 0, hideIntent, 0);
+        return new NotificationCompat.Action.Builder(R.drawable.ic_hide, getString(R.string.hide), hidePendingIntent).build();
+    }
+
+    private void setHiddenPreference() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        preferences.edit().putBoolean("hidden", false).apply();
     }
 
     private String getRingerMode() {

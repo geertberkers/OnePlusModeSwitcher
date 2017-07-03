@@ -4,7 +4,9 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import geert.berkers.modeswitcher.service.AlertSliderService;
@@ -33,11 +35,19 @@ public class InterruptionFilterReceiver extends BroadcastReceiver {
                 default: onInterruptionFilterChanged();                                        break;
             }
 
-            Intent i = new Intent(context, AlertSliderService.class);
-            context.startService(i);
+            boolean hidden = getPreferenceBoolean("hidden", false);
+
+            if(!hidden) {
+                Intent i = new Intent(context, AlertSliderService.class);
+                context.startService(i);
+            }
         }
     }
 
+    private boolean getPreferenceBoolean(String key, boolean defaultValue){
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return preferences.getBoolean(key, defaultValue);
+    }
     private void onInterruptionFilterChanged() {
         Log.i("ModeSwitcher", "onInterruptionFilterChanged()");
     }
