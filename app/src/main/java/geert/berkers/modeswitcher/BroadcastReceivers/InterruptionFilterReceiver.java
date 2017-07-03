@@ -11,6 +11,8 @@ import android.util.Log;
 
 import geert.berkers.modeswitcher.service.AlertSliderService;
 
+import static geert.berkers.modeswitcher.helper.NotificationState.*;
+
 /**
  * Created by Geert.
  */
@@ -35,19 +37,20 @@ public class InterruptionFilterReceiver extends BroadcastReceiver {
                 default: onInterruptionFilterChanged();                                        break;
             }
 
-            boolean hidden = getPreferenceBoolean("hidden", false);
+            String notificationState = getPreferenceString(NOTIFICATION_STATE);
 
-            if(!hidden) {
+            if (notificationState.equals(ENABLED)) {
                 Intent i = new Intent(context, AlertSliderService.class);
                 context.startService(i);
             }
         }
     }
 
-    private boolean getPreferenceBoolean(String key, boolean defaultValue){
+    private String getPreferenceString(String key){
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getBoolean(key, defaultValue);
+        return preferences.getString(key, null);
     }
+
     private void onInterruptionFilterChanged() {
         Log.i("ModeSwitcher", "onInterruptionFilterChanged()");
     }

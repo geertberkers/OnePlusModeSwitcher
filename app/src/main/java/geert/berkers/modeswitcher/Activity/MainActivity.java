@@ -1,6 +1,7 @@
 package geert.berkers.modeswitcher.activity;
 
 import android.app.ActivityManager;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,20 +12,25 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
 import geert.berkers.modeswitcher.R;
-import geert.berkers.modeswitcher.service.AlertSliderService;
 import geert.berkers.modeswitcher.fragment.MyPreferenceFragment;
+import geert.berkers.modeswitcher.service.AlertSliderService;
+
+import static geert.berkers.modeswitcher.helper.NotificationState.NOTIFICATION;
+import static geert.berkers.modeswitcher.helper.NotificationState.NOTIFICATION_STATE;
+import static geert.berkers.modeswitcher.helper.NotificationState.STOPPED;
+import static geert.berkers.modeswitcher.helper.NotificationState.UNKNOWN;
 
 /**
  * Created by Geert Berkers.
  */
-public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity
+        implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private Button btnStopService;
     private Button btnStartService;
@@ -42,16 +48,41 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onResume() {
         super.onResume();
+        handleNotification();
+        handleServiceButtons();
+    }
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        boolean startOnOpenApp = preferences.getBoolean("startOnOpenApp", true);
-
-        if(startOnOpenApp){
+    /**
+     * Check if service has to start on boot or app is closed
+     */
+    private void handleNotification(){
+        if(doStartOnOpenApp()){
             initService();
+        } else {
+            checkStopNotification();
         }
+    }
 
-       handleServiceButtons();
+    /**
+     * Check if AlertSliderService has to start on opening app
+     */
+    private boolean doStartOnOpenApp() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        return preferences.getBoolean("startOnOpenApp", true);
+    }
 
+    /**
+     * Check if notification is stopped.
+     * Opening on app hasn't to show notification.
+     */
+    private void checkStopNotification() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String notificationState = preferences.getString(NOTIFICATION_STATE, UNKNOWN);
+
+        if (notificationState.equals(STOPPED)) {
+            NotificationManager mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            mNM.cancel(NOTIFICATION);
+        }
     }
 
     /**
@@ -95,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     /**
-     * Initialize Controls
+     * Initialize Controls for Buttons and SharedPreferenceChangeListener
      */
     private void initControls() {
         btnStartService = (Button) findViewById(R.id.btnStartService);
@@ -180,7 +211,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
 
             if (AlertSliderService.class.getName().equals(service.service.getClassName())) {
-                Log.d("MainActivity", "ServiceName" + service.service.getClassName());
                 return true;
             }
         }
@@ -189,8 +219,13 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if(key.equals("showNotification")){
-            initService();
+        switch (key) {
+            case "showNotification":
+                initService();
+                break;
+            case "notificationState":
+                handleServiceButtons();
+                break;
         }
     }
 }
