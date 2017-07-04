@@ -1,4 +1,4 @@
-package geert.berkers.modeswitcher.broadcastReceivers;
+package geert.berkers.modeswitcher.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,8 +17,7 @@ public class CloseReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("CloseReceiver", " onReceive()");
-
+        Log.i("ModeSwitcher", "CloseReceiver: onReceive()");
         stopService(context);
         showStoppedNotification(context);
     }

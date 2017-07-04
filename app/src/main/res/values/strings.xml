@@ -16,6 +16,7 @@
     <string name="service_stopped">ModeSwitcher stopped!</string>
     <string name="notification_hidden">Notification hidden!</string>
     <string name="notification_closed">Stopped ModeSwitcher</string>
+    <string name="service_updated">Application updated</string>
 
     <!--Interrupt modes-->
     <string name="current_mode">Current mode:</string>
@@ -28,7 +29,7 @@
     <!--Preferences-->
     <string name="start_boot">Start on boot</string>
     <string name="start_app">Start on open App</string>
-    <string name="always_show_notification">Always show notification</string>
+    <string name="always_show_notification">Show notification</string>
     <string name="show_stopped_notification">Show notification when stopped</string>
 
 </resources>

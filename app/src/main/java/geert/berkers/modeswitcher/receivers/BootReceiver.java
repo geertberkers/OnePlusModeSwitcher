@@ -1,13 +1,14 @@
-package geert.berkers.modeswitcher.broadcastReceivers;
+package geert.berkers.modeswitcher.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
+import geert.berkers.modeswitcher.helper.PreferenceHelper;
 import geert.berkers.modeswitcher.service.AlertSliderService;
+
+import static geert.berkers.modeswitcher.helper.NotificationState.*;
 
 /**
  * Created by Geert Berkers.
@@ -19,12 +20,15 @@ public class BootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("BootReceiver", "onReceive()");
+        Log.i("ModeSwitcher", "BootReceiver: onReceive()");
         String action = intent.getAction();
 
+        Log.i("ModeSwitcher", "BootReceiver action: " + action);
         if (action.equals(BOOT_COMPLETE)) {
+            setNotificationState(context, BOOTED);
             checkStartBoot(context);
         } else if (action.equals(RESTART_APP)) {
+            setNotificationState(context, RESTART);
             startService(context);
         }
     }
@@ -34,8 +38,7 @@ public class BootReceiver extends BroadcastReceiver {
      * @param context for accessing SharedPreferences
      */
     private void checkStartBoot(Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean startOnBoot = preferences.getBoolean("startOnBoot", false);
+        boolean startOnBoot = PreferenceHelper.getBoolean(context, "startOnBoot", false);
 
         if (startOnBoot) {
             startService(context);
@@ -51,5 +54,9 @@ public class BootReceiver extends BroadcastReceiver {
     private void startService(Context context){
         Intent i = new Intent(context, AlertSliderService.class);
         context.startService(i);
+    }
+
+    private void setNotificationState(Context context, String state){
+        PreferenceHelper.setNotificationState(context, state);
     }
 }

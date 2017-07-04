@@ -1,4 +1,4 @@
-package geert.berkers.modeswitcher.broadcastReceivers;
+package geert.berkers.modeswitcher.receivers;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -11,7 +11,8 @@ import android.util.Log;
 
 import geert.berkers.modeswitcher.service.AlertSliderService;
 
-import static geert.berkers.modeswitcher.helper.NotificationState.*;
+import static geert.berkers.modeswitcher.helper.NotificationState.ENABLED;
+import static geert.berkers.modeswitcher.helper.NotificationState.NOTIFICATION_STATE;
 
 /**
  * Created by Geert.
@@ -37,12 +38,19 @@ public class InterruptionFilterReceiver extends BroadcastReceiver {
                 default: onInterruptionFilterChanged();                                        break;
             }
 
-            String notificationState = getPreferenceString(NOTIFICATION_STATE);
+            updateNotification();
+        }
+    }
 
-            if (notificationState.equals(ENABLED)) {
-                Intent i = new Intent(context, AlertSliderService.class);
-                context.startService(i);
-            }
+    /**
+     * Update the notification if NotificationState is Enabled
+     */
+    private void updateNotification() {
+        String notificationState = getPreferenceString(NOTIFICATION_STATE);
+
+        if (notificationState.equals(ENABLED)) {
+            Intent i = new Intent(context, AlertSliderService.class);
+            context.startService(i);
         }
     }
 
@@ -56,27 +64,31 @@ public class InterruptionFilterReceiver extends BroadcastReceiver {
     }
 
     private void handleAlarmState() {
-        Log.i("ModeSwitcher", "handleAlarmState()");
+//        Log.i("ModeSwitcher", "handleAlarmState()");
     }
 
     private void handleAllState() {
-        Log.i("ModeSwitcher", "handleAllState()");
+//        Log.i("ModeSwitcher", "handleAllState()");
         setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
     }
 
     private void handleNoneState() {
-        Log.i("ModeSwitcher","handleNoneState()");
+//        Log.i("ModeSwitcher","handleNoneState()");
         setRingerMode(AudioManager.RINGER_MODE_SILENT);
     }
 
     private void handlePriorityState() {
-        Log.i("ModeSwitcher","handlePriorityState()");
+//        Log.i("ModeSwitcher","handlePriorityState()");
     }
 
     private void handleUnknownState() {
-        Log.i("ModeSwitcher", "handleUnknownState()");
+//        Log.i("ModeSwitcher", "handleUnknownState()");
     }
 
+    /**
+     * Set RingerMode for phone
+     * @param ringerMode AudioManger.RINGER_MODE_STATE
+     */
     private void setRingerMode(int ringerMode) {
         AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         am.setRingerMode(ringerMode);

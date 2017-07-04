@@ -1,14 +1,10 @@
 package geert.berkers.modeswitcher.activity;
 
-import android.app.ActivityManager;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,15 +15,13 @@ import android.widget.Button;
 
 import geert.berkers.modeswitcher.R;
 import geert.berkers.modeswitcher.fragment.MyPreferenceFragment;
+import geert.berkers.modeswitcher.helper.PreferenceHelper;
 import geert.berkers.modeswitcher.service.AlertSliderService;
 
-import static geert.berkers.modeswitcher.helper.NotificationState.NOTIFICATION;
-import static geert.berkers.modeswitcher.helper.NotificationState.NOTIFICATION_STATE;
-import static geert.berkers.modeswitcher.helper.NotificationState.STOPPED;
-import static geert.berkers.modeswitcher.helper.NotificationState.UNKNOWN;
+import static geert.berkers.modeswitcher.helper.NotificationState.*;
 
 /**
- * Created by Geert Berkers.
+ * Created by Geert.
  */
 public class MainActivity extends AppCompatActivity
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -49,57 +43,40 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         handleNotification();
+        initService();
         handleServiceButtons();
     }
 
-    /**
-     * Check if service has to start on boot or app is closed
-     */
-    private void handleNotification(){
-        if(doStartOnOpenApp()){
-            initService();
-        } else {
-            checkStopNotification();
-        }
-    }
-
-    /**
-     * Check if AlertSliderService has to start on opening app
-     */
-    private boolean doStartOnOpenApp() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        return preferences.getBoolean("startOnOpenApp", true);
-    }
-
-    /**
-     * Check if notification is stopped.
-     * Opening on app hasn't to show notification.
-     */
-    private void checkStopNotification() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String notificationState = preferences.getString(NOTIFICATION_STATE, UNKNOWN);
-
-        if (notificationState.equals(STOPPED)) {
-            NotificationManager mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            mNM.cancel(NOTIFICATION);
-        }
+    private void handleNotification() {
+        boolean startOnOpenApp = PreferenceHelper.getBoolean(this, "startOnOpenApp", true);
+        setNotificationState(startOnOpenApp ? ENABLED : getCurrentNotificationState());
     }
 
     /**
      * Handle button background color
      */
     private void handleServiceButtons() {
-        if(isAlertSliderServiceRunning()){
-            btnStopService.setEnabled(true);
-            btnStartService.setEnabled(false);
-            btnStopService.getBackground().setColorFilter(0xFF3F51B5, PorterDuff.Mode.MULTIPLY);
-            btnStartService.getBackground().setColorFilter(0x803F51B5, PorterDuff.Mode.MULTIPLY);
+        String notificationState = getCurrentNotificationState();
+
+        if(notificationState.equals(STOPPED) || notificationState.equals(DISABLED)){
+            setServiceStoppedLayout();
         } else{
-            btnStopService.setEnabled(false);
-            btnStartService.setEnabled(true);
-            btnStopService.getBackground().setColorFilter(0x803F51B5, PorterDuff.Mode.MULTIPLY);
-            btnStartService.getBackground().setColorFilter(0xFF3F51B5, PorterDuff.Mode.MULTIPLY);
+            setServiceStartedLayout();
         }
+    }
+
+    private void setServiceStartedLayout(){
+        btnStopService.setEnabled(true);
+        btnStartService.setEnabled(false);
+        btnStopService.getBackground().setColorFilter(0xFF3F51B5, PorterDuff.Mode.MULTIPLY);
+        btnStartService.getBackground().setColorFilter(0x803F51B5, PorterDuff.Mode.MULTIPLY);
+    }
+
+    private void setServiceStoppedLayout(){
+        btnStopService.setEnabled(false);
+        btnStartService.setEnabled(true);
+        btnStopService.getBackground().setColorFilter(0x803F51B5, PorterDuff.Mode.MULTIPLY);
+        btnStartService.getBackground().setColorFilter(0xFF3F51B5, PorterDuff.Mode.MULTIPLY);
     }
 
     /**
@@ -122,7 +99,6 @@ public class MainActivity extends AppCompatActivity
         if(getSupportActionBar() != null) {
             getSupportActionBar().setIcon(R.mipmap.ic_launcher);
         }
-
     }
 
     /**
@@ -133,7 +109,8 @@ public class MainActivity extends AppCompatActivity
         btnStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startService(getServiceIntent());
+                setNotificationState(ENABLED);
+                initService();
                 handleServiceButtons();
             }
         });
@@ -142,13 +119,28 @@ public class MainActivity extends AppCompatActivity
         btnStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                stopService(getServiceIntent());
+                setNotificationState(STOPPED);
+                stopService();
                 handleServiceButtons();
             }
         });
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        prefs.registerOnSharedPreferenceChangeListener(this);
+        registerOnSharedPreferenceChangeListener();
+    }
+
+    /**
+     * Set the NotificationState
+     * @param state NotificationState to set
+     */
+    private void setNotificationState(String state) {
+        PreferenceHelper.setNotificationState(MainActivity.this, state);
+    }
+
+    /**
+     * Set OnSharedPreferenceListener
+     */
+    private void registerOnSharedPreferenceChangeListener() {
+        PreferenceHelper.registerOnSharedPreferenceChangeListener(this, this);
     }
 
     /**
@@ -156,6 +148,13 @@ public class MainActivity extends AppCompatActivity
      */
     private void initService() {
         startService(getServiceIntent());
+    }
+
+    /**
+     * Stop AlertSliderService
+     */
+    private void stopService() {
+        stopService(getServiceIntent());
     }
 
     /**
@@ -202,30 +201,25 @@ public class MainActivity extends AppCompatActivity
         alertDialogBuilder.show();
     }
 
-    /**
-     * Check if Service is running currently
-     * @return true if running else false
-     */
-    private boolean isAlertSliderServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-
-            if (AlertSliderService.class.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         switch (key) {
             case "showNotification":
+                initShowNotificationPreference();
                 initService();
                 break;
             case "notificationState":
                 handleServiceButtons();
                 break;
         }
+    }
+
+    private void initShowNotificationPreference() {
+        boolean showNotification = PreferenceHelper.getBoolean(this, "showNotification", false);
+        setNotificationState(showNotification ? ENABLED : getCurrentNotificationState());
+    }
+
+    private String getCurrentNotificationState(){
+        return PreferenceHelper.getString(this, NOTIFICATION_STATE, UNKNOWN);
     }
 }

@@ -7,35 +7,35 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
 import geert.berkers.modeswitcher.R;
 import geert.berkers.modeswitcher.activity.MainActivity;
-import geert.berkers.modeswitcher.broadcastReceivers.BootReceiver;
-import geert.berkers.modeswitcher.broadcastReceivers.CloseReceiver;
-import geert.berkers.modeswitcher.broadcastReceivers.HideReceiver;
-import geert.berkers.modeswitcher.broadcastReceivers.InterruptionFilterReceiver;
+import geert.berkers.modeswitcher.receivers.BootReceiver;
+import geert.berkers.modeswitcher.receivers.CloseReceiver;
+import geert.berkers.modeswitcher.receivers.HideReceiver;
+import geert.berkers.modeswitcher.receivers.InterruptionFilterReceiver;
+import geert.berkers.modeswitcher.helper.PreferenceHelper;
 
-import static geert.berkers.modeswitcher.helper.NotificationState.ENABLED;
-import static geert.berkers.modeswitcher.helper.NotificationState.NOTIFICATION;
-import static geert.berkers.modeswitcher.helper.NotificationState.NOTIFICATION_STATE;
-import static geert.berkers.modeswitcher.helper.NotificationState.STOPPED;
+import static geert.berkers.modeswitcher.helper.NotificationState.*;
 
 /**
- * Created by Geert Berkers.
+ * Created by Geert.
  */
 public class AlertSliderService extends Service {
+
+    private final static String TAG = "ModeSwitcher";
+    private final static String SERVICE = "AlertSliderService: ";
 
     private boolean isRegistered = false;
 
     private NotificationManager mNM;
-
     private InterruptionFilterReceiver interruptionFilterReceiver;
 
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -43,7 +43,7 @@ public class AlertSliderService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i("AlertSliderService", "onStartCommand()");
+        Log.i(TAG, SERVICE + "onStartCommand()");
 
         initNotificationManager();
         initInterruptionFilterReceiver();
@@ -56,58 +56,84 @@ public class AlertSliderService extends Service {
      * Initialize Notification for Service
      */
     private void initNotificationManager() {
-        mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (mNM == null) {
+            mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        }
+    }
+
+    private void initInterruptionFilterReceiver() {
+        String state = PreferenceHelper.getString(this, NOTIFICATION_STATE, UNKNOWN);
+
+        switch (state) {
+            case UNKNOWN:
+            case ENABLED:
+            case RESTART:
+            case BOOTED:
+            case HIDDEN:
+                registerInterruptionFilterReceiver();
+                break;
+            case DISABLED:
+            case UPDATED:
+            case STOPPED:
+                Log.i(TAG, SERVICE + "Not registering InterruptionFilter for state: " + state);
+                break;
+        }
     }
 
     /**
      * Initialize InterruptionFilterReceiver for Service
      */
-    private void initInterruptionFilterReceiver() {
-        if(!isRegistered){
-            IntentFilter intentFilter = new IntentFilter(NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED);
+    private void registerInterruptionFilterReceiver() {
+        if (!isRegistered) {
             interruptionFilterReceiver = new InterruptionFilterReceiver();
+            IntentFilter intentFilter = new IntentFilter(NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED);
             registerReceiver(interruptionFilterReceiver, intentFilter);
             isRegistered = true;
         }
     }
 
-    /**
-     * Show or hide notification based on preference
-     */
     private void initNotification() {
-        boolean showNotification = getPreferenceBoolean("showNotification", true);
-        if(showNotification) {
-            showNotification();
+        String state = PreferenceHelper.getString(this, NOTIFICATION_STATE, UNKNOWN);
+        boolean showNotification = PreferenceHelper.getBoolean(this, "showNotification", true);
+
+        if (showNotification) {
+            switch (state) {
+                case BOOTED:
+                case UNKNOWN:
+                case ENABLED:
+                case RESTART:
+                    showNotification();
+                    break;
+                case UPDATED:
+                    showUpdatedNotification();
+                    break;
+                case STOPPED:
+                    showStoppedNotification();
+                    break;
+                default:
+                    Log.d(TAG, SERVICE + "InitNotification() state =" + state);
+            }
         } else {
             stopNotification();
         }
     }
 
-    /**
-     * Get value of SharedPreferenceBoolean with given key
-     * @param key key to get value from
-     * @param defaultValue return when no value is found
-     * @return received value if found else defaultValue
-     */
-    private boolean getPreferenceBoolean(String key, boolean defaultValue){
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        return preferences.getBoolean(key, defaultValue);
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i("AlertSliderService", "onDestroy()");
+        Log.i(TAG, SERVICE + "onDestroy()");
         handleOnDestroyNotification();
         handleOnDestroyUnregisterReceiver();
+        PreferenceHelper.setNotificationState(this, STOPPED);
     }
 
     /**
      * Handle notification for onDestroy
      */
     private void handleOnDestroyNotification() {
-        boolean showNotification = getPreferenceBoolean("showStoppedNotification", true);
-        if(showNotification) {
+        boolean showStoppedNotification = PreferenceHelper.getBoolean(this, "showStoppedNotification", true);
+
+        if (showStoppedNotification) {
             showStoppedNotification();
         } else {
             stopNotification();
@@ -118,7 +144,7 @@ public class AlertSliderService extends Service {
      * Handle unregisterReceiver for onDestroy
      */
     private void handleOnDestroyUnregisterReceiver() {
-        if(isRegistered) {
+        if (isRegistered) {
             unregisterReceiver(interruptionFilterReceiver);
             isRegistered = false;
         }
@@ -132,11 +158,36 @@ public class AlertSliderService extends Service {
     }
 
     /**
+     * Show a notification when this app is updated.
+     */
+    private void showUpdatedNotification() {
+        Log.i(TAG, SERVICE + "showUpdatedNotification()");
+        PendingIntent contentIntent = createContentIntent();
+
+        // Hide notification action
+        Intent restartServiceIntent = new Intent(this, BootReceiver.class);
+        restartServiceIntent.setAction(BootReceiver.RESTART_APP);
+        PendingIntent restartPendingIntent = PendingIntent.getBroadcast(this, 0, restartServiceIntent, 0);
+        NotificationCompat.Action restartAction = new NotificationCompat.Action.Builder(R.drawable.ic_restart, "Restart", restartPendingIntent).build();
+
+        // Build notification
+        Notification notification = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(getText(R.string.service_updated))
+                .setContentText(getString(R.string.click_open_app))
+                .setContentIntent(contentIntent)
+                .addAction(restartAction)
+                .build();
+
+        // Send the notification.
+        mNM.notify(NOTIFICATION, notification);
+    }
+
+    /**
      * Show a notification when this service stopped.
      */
     private void showStoppedNotification() {
-        // Launch intent
-        setNotificationState(STOPPED);
+        Log.i(TAG, SERVICE + "showStoppedNotification()");
         PendingIntent contentIntent = createContentIntent();
 
         // Hide notification action
@@ -162,8 +213,7 @@ public class AlertSliderService extends Service {
      * Show a notification while this service is running.
      */
     private void showNotification() {
-        Log.i("AlertSliderService", "showNotification()");
-        setNotificationState(ENABLED);
+        Log.i(TAG, SERVICE + "showNotification()");
         CharSequence text = getString(R.string.current_mode) + " " + getRingerMode();
 
         PendingIntent contentIntent = createContentIntent();
@@ -187,6 +237,7 @@ public class AlertSliderService extends Service {
 
     /**
      * Create content intent for opening notification
+     *
      * @return intent for notification
      */
     private PendingIntent createContentIntent() {
@@ -213,15 +264,8 @@ public class AlertSliderService extends Service {
     }
 
     /**
-     * Set NotificationState to Enabled
-     */
-    private void setNotificationState(String state) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        preferences.edit().putString(NOTIFICATION_STATE, state).apply();
-    }
-
-    /**
      * Get the current RingerMode as String
+     *
      * @return ringerMode
      */
     private String getRingerMode() {

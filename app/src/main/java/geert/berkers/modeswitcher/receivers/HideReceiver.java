@@ -1,4 +1,4 @@
-package geert.berkers.modeswitcher.broadcastReceivers;
+package geert.berkers.modeswitcher.receivers;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -9,8 +9,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import geert.berkers.modeswitcher.helper.ToastHelper;
 import geert.berkers.modeswitcher.R;
+import geert.berkers.modeswitcher.helper.ToastHelper;
 
 import static geert.berkers.modeswitcher.helper.NotificationState.*;
 
@@ -21,11 +21,11 @@ public class HideReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.i("HideReceiver", "onReceive()");
+        Log.i("ModeSwitcher", "HideReceiver: onReceive()");
         int notification = intent.getIntExtra("notification", 0);
 
         if (notification != 0) {
-            Log.i("HideReceiver", "onHideNotification()");
+            Log.i("ModeSwitcher", "HideReceiver: onHideNotification()");
             cancelNotification(context, notification);
             setNotificationState(context);
             showToast(context);

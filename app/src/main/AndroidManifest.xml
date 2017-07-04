@@ -3,7 +3,6 @@
     package="geert.berkers.modeswitcher">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
 
     <application
         android:allowBackup="true"
@@ -27,13 +26,20 @@
 
         <service android:name=".service.AlertSliderService" />
 
-        <receiver android:name=".broadcastReceivers.HideReceiver" />
+        <receiver android:name=".receivers.HideReceiver" />
 
-        <receiver android:name=".broadcastReceivers.CloseReceiver" />
+        <receiver android:name=".receivers.CloseReceiver" />
 
-        <receiver android:name=".broadcastReceivers.BootReceiver">
+        <receiver android:name=".receivers.BootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".receivers.UpdateReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
 
